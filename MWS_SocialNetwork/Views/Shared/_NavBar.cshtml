@@ -1,0 +1,31 @@
+﻿<aside class="main-sidebar">
+    <!-- sidebar: style can be found in sidebar.less -->
+    <section class="sidebar">
+        <!-- Sidebar user panel -->
+        <div class="user-panel">
+            <div class="pull-left image">
+                <img src=@User.Claims.FirstOrDefault(x=>x.Type == "ImageUrl").Value class="img-circle small-circle" alt="User Image">
+            </div>
+            <div class="pull-left info">
+                <!--<p>ProfileManager.CurrentUser.UserName</p>-->  <p>@User.Claims.FirstOrDefault(x => x.Type == "FullName").Value</p>
+                <a asp-action="Logout" asp-controller="Home"><i class="fa fa-circle text-success"></i>Sign out</a>
+            </div>
+        </div>
+        <!-- search form -->
+       
+        <!-- /.search form -->
+        <!-- sidebar menu: : style can be found in sidebar.less -->
+        <ul class="sidebar-menu" data-widget="tree">
+            <li class="header">HEADER</li>
+            <!-- Optionally, you can add icons to the links -->
+            <li class="@(Html.IsMenuActive("/MyPosts/Index") ? "active" : "")"><a href="/MyPosts/Index"><i class="fa fa-th"></i> <span>My Posts</span></a></li>
+            <li class="@(Html.IsMenuActive("/PrivacySettings/Index") ? "active" : "")"><a href="/PrivacySettings/Index"><i class="fa  fa-cogs"></i> <span>Privacy Settings</span></a></li>
+            <li class="@(Html.IsMenuActive("/MyProfile/Index") ? "active" : "")"><a href="/MyProfile/Index"><i class="fa fa-book"></i> <span>My Profile</span></a></li>
+            <li class="@(Html.IsMenuActive("/MyContacts/Index") ? "active" : "")"><a href="/MyContacts/Index"><i class="fa fa-users"></i> <span>My Contacts</span></a></li>
+            <li class="@(Html.IsMenuActive("/MyGroups/Index") ? "active" : "")"><a href="/MyGroups/Index"><i class="fa fa-object-group"></i> <span>My Groups</span></a></li>
+            <li class="@(Html.IsMenuActive("/AddPost/Index") ? "active" : "")"><a href="/AddPost/Index"><i class="fa fa-plus-square"></i> <span>Add Post</span></a></li>
+
+        </ul>
+    </section>
+    <!-- /.sidebar -->
+</aside>

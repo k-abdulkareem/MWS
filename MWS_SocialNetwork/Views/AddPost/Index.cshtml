@@ -1,0 +1,360 @@
+﻿@model MWS_SocialNetwork.ViewModels.AddPostAsOwnerModel
+
+
+@section Styles {
+    <!-- Select2 -->
+    <link rel="stylesheet" href="~/bower_components/select2/dist/css/select2.min.css">
+    <!--Toastr Notification-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+
+}
+@section Scripts {
+    <!--Toastr Notification-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- Select2 -->
+    <script src="~/bower_components/select2/dist/js/select2.full.min.js"></script>
+
+    <!--Owner-->
+    <script>
+ $('#Owner-Relationship').on('change', function (e) {
+     var selectedRelationships = [];
+
+     $.each($("#Owner-Relationship option:selected"), function () {
+         selectedRelationships.push($(this).val());
+     });
+     var except = $("#Owner-Relationship-Except");
+     except.empty();
+     var dataobj = { relationships: selectedRelationships };
+         $.ajax({
+                            url: '@Url.Action("GetRelationshipsContacts", "PrivacySettings")',
+                            data: dataobj,
+                            dataType: "JSON",
+                            traditional :true,
+                            success: function (excepts) {
+                                $.each(excepts, function (index, entry) {
+                                    var newOption = new Option(entry.text, entry.value, false, false);
+                                    except.append(newOption);
+                                });
+                            }
+                        });
+
+
+        });
+    </script>
+    <script>
+        $('#Owner-Groups').on('change', function (e) {
+     var selectedGroups = [];
+
+            $.each($("#Owner-Groups option:selected"), function () {
+                selectedGroups.push($(this).val());
+     });
+            var except = $("#Owner-Groups-Except");
+     except.empty();
+            var dataobj = { groups: selectedGroups };
+         $.ajax({
+                            url: '@Url.Action("GetGroupsMembers", "PrivacySettings")',
+                            data: dataobj,
+                            dataType: "JSON",
+                            traditional :true,
+                            success: function (excepts) {
+                                $.each(excepts, function (index, entry) {
+                                    var newOption = new Option(entry.text, entry.value, false, false);
+                                    except.append(newOption);
+                                });
+                            }
+                        });
+    });
+    </script>
+
+    <!--select 2-->
+    <script>
+        function format_u(state) {
+         // debugger;
+                if (!state.id) return state.text; // optgroup
+             return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Profiles-Images/"+state.id+".jpg' /></span>" +" "+state.text;
+        }
+
+        function format_i(state) {
+            //  debugger;
+            //if (!state.id) return state.text; // optgroup
+            return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Profiles-Images/" + state.id + ".jpg' /></span>" + " " + state.text;
+        }
+
+        function format_g(state) {
+            //if (!state.id) return state.text; // optgroup
+            return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Groups-Images/" + state.id + ".jpg' /></span>" + " " + state.text;
+        }
+
+
+        $(function () {
+            //Initialize Select2 Elements
+            $('.select2').select2()
+        })
+
+        $(function () {
+            //Initialize Select2 Elements
+            $('.select2_g').select2({
+                templateResult: format_g,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+
+        $(function () {
+            //Initialize Select2 Elements
+            $('.select2_u').select2({
+                templateResult: format_u,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+
+
+        $(function () {
+            $('.Individual').select2({
+                placeholder: "Search for a user",
+                minimumInputLength: 2,
+                ajax: {
+                    url: '@Url.Action("GetIndividuals", "PrivacySettings")',
+                    dataType: 'json',
+                    type: "GET",
+                    quietMillis: 100,
+                    data: function (params) { return { term: params.term }; },
+
+                    processResults: function (data, page) {
+
+                        var results = [];
+                        $.each(data, function (index, item) {
+                            results.push({
+                                id: item.value,
+                                text: item.text
+                            });
+                        });
+                        return {
+                            results: results
+                        };
+                        //alert(results);
+                    }
+                    //cache: true
+                },
+                templateResult: format_i,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+
+    </script>
+
+    <!--Add Post-->
+    <script>
+        $('#AddPost').on('click', function (e) {
+            e.preventDefault();
+            //Post Cntent
+            var content = $("#Content").val();
+            if (content.trim() == "") {
+                toastr.options.positionClass = 'toast-bottom-right';
+                toastr.error('Are you missing Post Content!!');
+                return;
+            }
+           // debugger;
+            //privacy Settings
+            var ownerModel = {
+                Id : "1",
+                Relationships: $('#Owner-Relationship').serializeArray(),
+                ExceptRelationshipsContacts: $('#Owner-Relationship-Except').serializeArray(),
+                Groups: $('#Owner-Groups').serializeArray(),
+                ExceptGroupsMembers: $('#Owner-Groups-Except').serializeArray(),
+                Individuals: $('#Owner-Individual').serializeArray()
+            };
+            //Tagged People
+            var tagged = $('#TaggedUsers').serializeArray();
+            //Main Model
+            var viewModel = {
+                Content: content,
+                TaggedUsers: tagged,
+                PrivacySettings: ownerModel
+            };
+            var dataobj = {model :viewModel};
+         $.ajax({
+             url: '@Url.Action("AddPost")',
+             data: dataobj,
+             type: 'Post',
+             success: function (responce) {
+                 toastr.options.positionClass = 'toast-bottom-right';
+                 console.log("success");
+                 toastr.success("Successfully Adding Post");
+                  },
+             error: function (jqXHR, status, err) {
+                 toastr.options.positionClass = 'toast-bottom-right';
+                 console.log(jqXHR.responseText);
+                 toastr.error('Failed Adding Post');
+                 }
+               });
+
+        });
+    </script>
+}
+
+
+<section class="content-header">
+    <h1>
+        Add Post
+    </h1>
+</section>
+
+<section class="content">
+    <form class="form-horizontal" method="post">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Compose New Post</h3>
+                    </div>
+                    <!--Post Content-->
+                    <div class="box-body ">
+                        <div class="form-group" style="margin-left:0px" >
+                            <textarea asp-for="Content" class="form-control " id="Content" style="height:200px; width:95%; " placeholder="Add Post here"></textarea>
+                        </div>
+                        @*<div class="form-group">
+                                <div class="btn btn-default btn-file">
+                                    <i class="fa fa-paperclip"></i> Attachment
+                                    <input type="file" name="attachment">
+                                </div>
+                                <p class="help-block">Max. 5MB</p>
+                            </div>*@
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+
+                <!--Privacy settings-->
+                <div class="box box-success">
+                    <div class="box-header with-border">
+                        <h3 class="box-title"> Choose to Apply Your Default Privacy Settings or Customize it </h3>
+                    </div>
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label for="Relationships" class="col-sm-2 control-label">Relationships</label>
+                            <div class="col-sm-4">
+                                <select asp-for="PrivacySettings.Relationships" id="Owner-Relationship" class="form-control select2 Relationship" multiple="multiple" data-placeholder="Select Relationship" style="width: 100%;">
+                                    @if (Model.PrivacySettings.Relationships != null)
+                                    {
+                                        foreach (var item in Model.PrivacySettings.Relationships)
+                                        {
+                                            if (item.Selected)
+                                            {
+                                                <option value="@item.Value" selected>@item.Text</option>}
+                                            else
+                                            {
+                                                <option value="@item.Value">@item.Text</option>}
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <label for="exceptRelationship" class="col-sm-1 control-label">Except</label>
+                            <div class="col-sm-4">
+                                <select asp-for="PrivacySettings.ExceptRelationshipsContacts" id="Owner-Relationship-Except" class="form-control select2_u" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                    @if (Model.PrivacySettings.ExceptRelationshipsContacts != null)
+                                    {
+                                        foreach (var item in Model.PrivacySettings.ExceptRelationshipsContacts)
+                                        {
+                                            if (item.Selected)
+                                            {
+                                                <option value="@item.Value" selected>@item.Text</option>}
+                                            else
+                                            {
+                                                <option value="@item.Value">@item.Text</option>}
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="Groups" class="col-sm-2 control-label">Groups</label>
+                            <div class="col-sm-4">
+                                <select asp-for="PrivacySettings.Groups" id="Owner-Groups" class="form-control select2_g" multiple="multiple" data-placeholder="Select Group" style="width: 100%;">
+                                    @if (Model.PrivacySettings.Groups != null)
+                                    {
+                                        foreach (var item in Model.PrivacySettings.Groups)
+                                        {
+                                            if (item.Selected)
+                                            {
+                                                <option value="@item.Value" selected>@item.Text</option>}
+                                            else
+                                            {
+                                                <option value="@item.Value">@item.Text</option>}
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <label for="exceptGroup" class="flag-container col-sm-1 control-label">Except</label>
+                            <div class="col-sm-4">
+                                <select asp-for="PrivacySettings.ExceptGroupsMembers" id="Owner-Groups-Except" class="form-control select2_u" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                    @if (Model.PrivacySettings.ExceptGroupsMembers != null)
+                                    {
+                                        foreach (var item in Model.PrivacySettings.ExceptGroupsMembers)
+                                        {
+                                            if (item.Selected)
+                                            {
+                                                <option value="@item.Value" selected>@item.Text</option>}
+                                            else
+                                            {
+                                                <option value="@item.Value">@item.Text</option>}
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="Individual" class=" col-sm-2 control-label">Individual Users</label>
+                            <div class="col-sm-9">
+                                <select asp-for="PrivacySettings.Individuals" id="Owner-Individual" class="form-control Individual" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                    @if (Model.PrivacySettings.Individuals != null)
+                                    {
+                                        foreach (var item in Model.PrivacySettings.Individuals)
+                                        {
+                                            if (item.Selected)
+                                            {
+                                                <option value="@item.Value" selected>@item.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--Tag People-->
+                <div class="box box-warning">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Tag People</h3>
+                    </div>
+                    <div class="box-body ">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <select asp-for="TaggedUsers" class="form-control select2_u" multiple="multiple" data-placeholder="Select User" id="TaggedUsers" style="width: 100%;">
+                                    @if (Model.TaggedUsers != null)
+                                    {
+                                        foreach (var item in Model.TaggedUsers)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!--Save-->
+        <div class="row">
+            <div class="col-md-2">
+                <a href="#" class="btn btn-danger btn-block margin-bottom" id="AddPost">Publish</a>
+            </div>
+        </div>
+
+    </form>
+
+    @await Component.InvokeAsync("NToastNotify")
+</section>
+<!-- /.content -->

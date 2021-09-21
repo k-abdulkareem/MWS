@@ -1,0 +1,102 @@
+﻿@model MWS_SocialNetwork.ViewModels.GroupModel
+
+@section Styles {
+
+}
+@section Scripts {
+    <script src="~/Scripts/jquery-1.7.1.min.js"></script>
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        Group Page
+    </h1>
+
+</section>
+<!-- Main content -->
+<section class="content">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Profile Image -->
+            <div class="box box-primary">
+                <div class="box-body box-profile">
+                    <img class="profile-user-img img-responsive img-circle big-circle" src="@Model.ImageUrl" alt="Group profile picture">
+                    <h3 class="profile-username text-center">@Model.Name</h3>
+                    <ul class="list-group list-group-unbordered">
+                        <li class="list-group-item">
+                            <b>Created At</b> <a class="pull-right">@Model.CreationDate.ToString("dd MMMM yyyy")</a>
+                        </li>
+                        <li class="list-group-item">
+                            <b>Members</b> <a class="pull-right" href="#" data-toggle="modal" >@Model.MembersCount</a>
+                        </li>
+                        @*<li class="list-group-item">
+                            <b>Posts</b> <a class="pull-right">@Model.PostsCount  </a>
+                        </li>*@
+                    </ul>
+                   
+                    
+                    <form method="Post" id="ChangeGroupMembership" asp-action="Index">
+                        @Html.HiddenFor(x => x.Id)
+                        <select class="btn btn-primary btn-block form-control" id="Membership" name ="Membership"  style="width: 100%; " onchange="this.form.submit()">
+                            @if (Model.IsMember)
+                            {
+                                <option value="1" selected="selected">Joined</option>
+                                <option value="0">Disjoined</option>
+                            }
+                            else
+                            {
+                                <option value="1">Joined</option>
+                                <option value="0" selected="selected">Disjoined</option>
+                            }
+
+                        </select>
+                    </form>
+
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+
+        </div>
+        <!-- /.col -->
+        <div class="col-md-9">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Members (@Model.MembersCount)</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body no-padding">
+                    <ul class="users-list clearfix">
+                        @if (Model.Members != null)
+                        {
+                            if (Model.Members.Count > 0)
+                            {
+                                foreach (var item in Model.Members)
+                                {
+                                    <li>
+                                        <img class="big-circle" src="@item.ImageUrl" alt="User Image">
+                                        <a class="users-list-name" asp-action="Index" asp-controller="UserProfile" asp-route-cId="@item.Id">@item.FullName</a>
+                                        <span class="users-list-date">@item.RelationshipTitle</span>
+                                    </li>
+                                }
+                            }
+                        }
+                    </ul>
+
+                </div>
+                <!-- /.box-body -->
+
+            </div>
+            <!--/.box -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+
+    
+
+
+    
+</section>
+<!-- /.content -->

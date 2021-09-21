@@ -1,0 +1,119 @@
+﻿@model MWS_SocialNetwork.ViewModels.u2pPrivacySettingModel
+
+
+
+<!--Modal settings-->
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+           
+            <h4 class="modal-title">Change Privacy Settings</h4>
+        </div>
+        <div class="modal-body">
+
+            <form class="form-horizontal" method="post">
+                <div class="box-body no-padding">
+                    @Html.HiddenFor(x => x.Id, new { id = "u2pId" })
+                    <div class="form-group">
+                        <label for="Relationships" class="col-sm-2 control-label">Relationships</label>
+                        <div class="col-sm-4">
+                            <select asp-for="Relationships" id="Relationship" class="form-control select2 Relationship" multiple="multiple" data-placeholder="Select Relationship" style="width: 100%;">
+                                @if (Model.Relationships != null)
+                                {
+                                    foreach (var item in Model.Relationships)
+                                    {
+                                        if (item.Selected)
+                                        {
+                                            <option value="@item.Value" selected>@item.Text</option>}
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>}
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <label for="exceptRelationship" class="col-sm-1 control-label">Except</label>
+                        <div class="col-sm-4">
+                            <select asp-for="ExceptRelationshipsContacts" id="Relationship-Except" class="form-control select2_u" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                @if (Model.ExceptRelationshipsContacts != null)
+                                {
+                                    foreach (var item in Model.ExceptRelationshipsContacts)
+                                    {
+                                        if (item.Selected)
+                                        {
+                                            <option value="@item.Value" selected>@item.Text</option>}
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>}
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="Groups" class="col-sm-2 control-label">Groups</label>
+                        <div class="col-sm-4">
+                            <select asp-for="Groups" id="Groups" class="form-control select2_g" multiple="multiple" data-placeholder="Select Group" style="width: 100%;">
+                                @if (Model.Groups != null)
+                                {
+                                    foreach (var item in Model.Groups)
+                                    {
+                                        if (item.Selected)
+                                        {
+                                            <option value="@item.Value" selected>@item.Text</option>}
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>}
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <label for="exceptGroup" class="flag-container col-sm-1 control-label">Except</label>
+                        <div class="col-sm-4">
+                            <select asp-for="ExceptGroupsMembers" id="Groups-Except" class="form-control select2_u" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                @if (Model.ExceptGroupsMembers != null)
+                                {
+                                    foreach (var item in Model.ExceptGroupsMembers)
+                                    {
+                                        if (item.Selected)
+                                        {
+                                            <option value="@item.Value" selected>@item.Text</option>}
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>}
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="Individual" class=" col-sm-2 control-label">Individual Users</label>
+                        <div class="col-sm-9">
+                            <select asp-for="Individuals" id="Individual" class="form-control Individual" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                @if (Model.Individuals != null)
+                                {
+                                    foreach (var item in Model.Individuals)
+                                    {
+                                        if (item.Selected)
+                                        {
+                                            <option value="@item.Value" selected>@item.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <!-- /.box-body -->
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default pull-left" data-dismiss="modal" id="CloseModalSettings">Close</button>
+            <button type="submit" class="btn btn-danger" id="SavePrivacySettings">Save Changes</button>
+        </div>
+    </div>
+    <!-- /.modal-content -->
+</div>
+<!-- /.modal-dialog -->

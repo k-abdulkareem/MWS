@@ -1,0 +1,36 @@
+﻿@model MWS_SocialNetwork.ViewModels.UserProfileViewModel
+<form id="ChangeRelationForm" method="post">
+    <select asp-for="RelationshipId" class="btn btn-primary btn-block form-control " name="rId" id="rId" style="width: 100%;"    >
+        @if (Model.Relationships != null)
+        {
+            bool x = false;
+
+            @foreach (var item in Model.Relationships)
+            {
+
+                if (Model.RelationshipId != "Stranger" && Model.RelationshipId == item.Id)
+                {
+                    <option value="@item.Id" selected="selected">@item.Title</option>
+                    x = true;
+
+                }
+                else
+                {
+                    <option value = "@item.Id" > @item.Title </option >
+
+                }
+            }
+            if (!x)
+            {
+                <option value="Stranger" selected="selected">Stranger</option>
+                }
+                else
+                {
+                <option value="Stranger">Stranger</option>
+                }
+
+        }
+    </select>
+
+</form>
+@await Component.InvokeAsync("NToastNotify")

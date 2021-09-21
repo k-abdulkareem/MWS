@@ -1,0 +1,79 @@
+﻿@model IEnumerable<MWS_SocialNetwork.ViewModels.NotificationViewModel>
+
+    <li class="dropdown notifications-menu">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            <i class="fa fa-bell-o"></i>
+            <span class="label label-warning">@Model.Count()</span>
+        </a>
+        <ul class="dropdown-menu">
+            @if (Model != null)
+            {
+                <li class="header">You have @Model.Where(x => !x.IsSeen).Count() notifications</li>
+            }
+            else
+            {
+                <li class="header">You have no notifications yet</li>
+            }
+
+            <li>
+                <!-- inner menu: contains the actual data -->
+                <ul class="menu">
+                    @if (Model.Take(20) != null)
+                    {
+                        foreach (var item in Model.Take(20))
+                        {
+                            <li class="text-sm">
+                                @switch (item.Code)
+                                {
+                                    case "AddRelationship":
+                                        {
+                                            <a href="#">
+                                                <i class="fa fa-wrench text-aqua"></i> We added '@item.Parameter' as new relationship
+                                            </a>
+                                            break;
+                                        }
+                                    case "ChangeConflictPolicy":
+                                        {
+                                            <a href="#">
+                                                <i class="fa fa-wrench text-aqua"></i> We have Changed Conflict resolution Policy to ('@item.Parameter') 
+                                            </a>
+                                            break;
+                                        }
+                                    case "ChangeRelationship":
+                                        {
+                                            <a asp-action="Index" asp-controller="UserProfile" asp-route-cId="@item.FromUserId">
+                                                <i class="fa fa-user text-aqua"></i> @item.FromUserFullName has defined you as @item.Parameter
+                                            </a>
+                                            break;
+                                        }
+                                    case "GroupInvitation":
+                                        {
+                                            <a asp-action="Index" asp-controller="GroupProfile" asp-route-gId="@item.Parameter">
+                                                <i class="fa fa-users text-aqua"></i> @item.FromUserFullName has invited you to his new group
+                                            </a>
+                                            break;
+                                        }
+                                    case "Tag":
+                                        {
+                                            <a asp-action="Index" asp-controller="MyPosts" asp-route-active="@item.Parameter">
+                                                <i class="fa fa-tag text-aqua"></i> @item.FromUserFullName Tagged you to a new Post
+                                            </a>
+                                            break;
+                                        }
+                                    case "Contribute":
+                                        {
+                                            <a asp-action="Index" asp-controller="MyPosts" asp-route-active="@item.Parameter">
+                                                <i class="fa fa-pencil-square-o text-aqua"></i> @item.FromUserFullName added a post to your space
+                                            </a>
+                                            break;
+                                        }
+                                }
+                            </li>
+                        }
+                    }
+                    
+
+                </ul>
+            </li>
+        </ul>
+    </li>

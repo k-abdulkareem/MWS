@@ -1,0 +1,546 @@
+﻿@model MWS_SocialNetwork.ViewModels.UserProfileViewModel
+
+@using MWS_SocialNetwork.Settings 
+@section Styles {
+
+    <!-- Select2 -->
+    <link rel="stylesheet" href="~/bower_components/select2/dist/css/select2.min.css">
+    <link href="toastr.css" rel="stylesheet" />
+
+}
+@section Scripts {
+
+    <!-- Select2 -->
+    <script src="~/bower_components/select2/dist/js/select2.full.min.js"></script>
+    <script src="~/js/custom/change-relationship.js"></script>
+    <script src="toastr.js"></script>
+
+    <!--Contributor-->
+    <script>
+ $('#Contributor-Relationship').on('change', function (e) {
+     var selectedRelationships = [];
+
+     $.each($("#Contributor-Relationship option:selected"), function () {
+         selectedRelationships.push($(this).val());
+     });
+     var except = $("#Contributor-Relationship-Except");
+     except.empty();
+     var dataobj = { relationships: selectedRelationships };
+         $.ajax({
+                            url: '@Url.Action("GetRelationshipsContacts", "PrivacySettings")',
+                            data: dataobj,
+                            dataType: "JSON",
+                            traditional :true,
+                            success: function (excepts) {
+                                $.each(excepts, function (index, entry) {
+                                    var newOption = new Option(entry.text, entry.value, false, false);
+                                    except.append(newOption);
+                                });
+                            }
+                        });
+
+
+        });
+    </script>
+    <script>
+        $('#Contributor-Groups').on('change', function (e) {
+     var selectedGroups = [];
+
+            $.each($("#Contributor-Groups option:selected"), function () {
+                selectedGroups.push($(this).val());
+     });
+            var except = $("#Contributor-Groups-Except");
+     except.empty();
+            var dataobj = { groups: selectedGroups };
+         $.ajax({
+                            url: '@Url.Action("GetGroupsMembers", "PrivacySettings")',
+                            data: dataobj,
+                            dataType: "JSON",
+                            traditional :true,
+                            success: function (excepts) {
+                                $.each(excepts, function (index, entry) {
+                                    var newOption = new Option(entry.text, entry.value, false, false);
+                                    except.append(newOption);
+                                });
+                            }
+                        });
+    });
+    </script>
+
+    <!--select 2-->
+    <script>
+        function format_u(state) {
+         // debugger;
+                if (!state.id) return state.text; // optgroup
+             return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Profiles-Images/"+state.id+".jpg' /></span>" +" "+state.text;
+        }
+
+        function format_i(state) {
+            //  debugger;
+            //if (!state.id) return state.text; // optgroup
+            return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Profiles-Images/" + state.id + ".jpg' /></span>" + " " + state.text;
+        }
+
+        function format_g(state) {
+            //if (!state.id) return state.text; // optgroup
+            return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Groups-Images/" + state.id + ".jpg' /></span>" + " " + state.text;
+        }
+
+
+        $(function () {
+            //Initialize Select2 Elements
+            $('.select2').select2()
+        })
+
+        $(function () {
+            //Initialize Select2 Elements
+            $('.select2_g').select2({
+                templateResult: format_g,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+
+        $(function () {
+            //Initialize Select2 Elements
+            $('.select2_u').select2({
+                templateResult: format_u,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+
+
+        $(function () {
+            $('.Individual').select2({
+                placeholder: "Search for a user",
+                minimumInputLength: 2,
+                ajax: {
+                    url: '@Url.Action("GetIndividuals", "PrivacySettings")',
+                    dataType: 'json',
+                    type: "GET",
+                    quietMillis: 100,
+                    data: function (params) { return { term: params.term }; },
+
+                    processResults: function (data, page) {
+
+                        var results = [];
+                        $.each(data, function (index, item) {
+                            results.push({
+                                id: item.value,
+                                text: item.text
+                            });
+                        });
+                        return {
+                            results: results
+                        };
+                        //alert(results);
+                    }
+                    //cache: true
+                },
+                templateResult: format_i,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+
+    </script>
+    
+    <!--Add Post-->
+    <script>
+        $('#AddPost').on('click', function (e) {
+            e.preventDefault();
+            //Post Cntent
+            var content = $("#Content").val();
+            if (content.trim() == "") {
+                toastr.options.positionClass = 'toast-bottom-right';
+                toastr.error('Are you missing Post Content!!');
+                return;
+            }
+           // debugger;
+            //privacy Settings
+            var ContributorModel = {
+                Id: $("#ContributorId").val(),
+               // Id: "1",
+                Relationships: $('#Contributor-Relationship').serializeArray(),
+                ExceptRelationshipsContacts: $('#Contributor-Relationship-Except').serializeArray(),
+                Groups: $('#Contributor-Groups').serializeArray(),
+                ExceptGroupsMembers: $('#Contributor-Groups-Except').serializeArray(),
+                Individuals: $('#Contributor-Individual').serializeArray()
+            };
+            //Tagged People
+            var tagged = $('#TaggedUsers').serializeArray();
+            //Main Model
+            var viewModel = {
+                OwnerId: $("#OwnerId").val(),
+                Content: content,
+                TaggedUsers: tagged,
+                ContributorPrivacySettings: ContributorModel
+            };
+            var dataobj = {model :viewModel};
+         $.ajax({
+             url: '@Url.Action("AddPost")',
+             data: dataobj,
+             type: 'Post',
+             success: function (responce) {
+                 toastr.options.positionClass = 'toast-bottom-right';
+         console.log("success");
+                 toastr.success("Successfully Adding Post");
+                  },
+             error: function (jqXHR, status, err) {
+                 toastr.options.positionClass = 'toast-bottom-right';
+                 console.log(jqXHR.responseText);
+                 toastr.error('Failed Adding Post');
+                 }
+               });
+
+        });
+    </script>
+
+
+    <!--set Like-->
+    <script>
+        function SetLike(postId, event) {
+            event.preventDefault();
+            var anchor = "#like-" + postId
+            $.ajax({
+                url: '@Url.Action("SetLike")',
+                data: { postId: postId },
+                type: 'Post',
+                context: this,
+                dataType: 'JSON',
+                success: function (responce) {
+                    $(anchor).attr("disabled", "disabled");
+                    $(anchor).addClass("text-orange");
+                    $(anchor).removeAttr("href");
+                },
+                error: function (jqXHR, status, err) {
+                    console.log(jqXHR.responseText);
+                }
+            });
+        }
+
+    </script>
+    <!--SharePost-->
+    <script>
+        function SharePost(postId, event) {
+            event.preventDefault();
+            var anchor = "#share-" + postId
+            $.ajax({
+                url: '@Url.Action("SharePost")',
+                data: { postId: postId },
+                type: 'Post',
+                context: this,
+                dataType: 'JSON',
+                success: function (responce) {
+                    $(anchor).attr("disabled", "disabled");
+                    $(anchor).addClass("text-orange");
+                    $(anchor).removeAttr("href");
+                },
+                error: function (jqXHR, status, err) {
+                    console.log(jqXHR.responseText);
+                }
+            });
+        }
+
+    </script>
+}
+
+<section class="content-header">
+    <h1>
+        User Profile
+    </h1>
+
+</section>
+<section class="content">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Profile Image -->
+            <div class="box box-primary">
+                <div class="box-body box-profile">
+                    <img class="profile-user-img img-responsive img-circle big-circle" src="@Model.ProfileViewModel.PersonalViewModel.ImageUrl" alt="User profile picture">
+                    <h3 class="profile-username text-center">@Model.ProfileViewModel.PersonalViewModel.FullName</h3>
+                    <ul class="list-group list-group-unbordered">
+                        <li class="list-group-item">
+                            <b>Friends</b> <a class="pull-right">@Model.ProfileViewModel.CountViewModel.ContactsCount</a>
+                        </li>
+                        <li class="list-group-item">
+                            <b>Groups</b> <a class="pull-right">@Model.ProfileViewModel.CountViewModel.GroupsCount</a>
+                        </li>
+                        <li class="list-group-item">
+                            <b>Posts</b> <a class="pull-right">@Model.ProfileViewModel.CountViewModel.PostsCount</a>
+                        </li>
+                    </ul>
+                    @*Relationship*@
+
+                    <div id="RelationshipContainer">
+
+                        @await Html.PartialAsync("_ChangeRelationshipView", Model)
+                    </div>
+
+
+                </div>
+            </div>
+            <!-- About Me Box -->
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">About </h3>
+                </div>
+                <div class="box-body">
+                    <strong><i class="fa fa-user margin-r-5"></i> Personal</strong>
+                    @{
+                        string ageString = "";
+                        if (@Model.ProfileViewModel.PersonalViewModel.Birth_Date != null)
+                        {
+                            int age = @DateTime.Now.Year - @Model.ProfileViewModel.PersonalViewModel.Birth_Date.Value.Year;
+                            ageString = age + " Years Old ";
+                        }
+
+                    }
+                    <p class="text-muted">
+                        @ageString
+                        @(Model.ProfileViewModel.PersonalViewModel.CountryId == 1 ? "" : ",Lives in " + Model.ProfileViewModel.Countries.FindLast(x => x.Id == Model.ProfileViewModel.PersonalViewModel.CountryId).Name + ".")
+                    </p>
+                    <hr>
+                    <strong><i class="fa fa-graduation-cap margin-r-5"></i> Education</strong>
+                    <p class="text-muted">
+                        @if (Model.ProfileViewModel.EducationViewModel.EducationDegreeId != 0)
+                        {
+                            @(Model.ProfileViewModel.EducationViewModel.EducationDegreeId == 1 ? "undefined degree " : "" + Model.ProfileViewModel.EducationDegrees.FindLast(x => x.Id == Model.ProfileViewModel.EducationViewModel.EducationDegreeId).Name)
+                            @(Model.ProfileViewModel.EducationViewModel.StudyTitle == null ? "" : " in " + Model.ProfileViewModel.EducationViewModel.StudyTitle)
+                            @(Model.ProfileViewModel.EducationViewModel.SchoolOrUniversity == null ? "" : " from " + Model.ProfileViewModel.EducationViewModel.SchoolOrUniversity)
+                            @(Model.ProfileViewModel.EducationViewModel.CountryId == 1 ? "" : " , " + Model.ProfileViewModel.Countries.FindLast(x => x.Id == Model.ProfileViewModel.EducationViewModel.CountryId).Name + ".")<br/>
+                            @(Model.ProfileViewModel.EducationViewModel.StartAt == "" ? "" : " Start at " + Model.ProfileViewModel.EducationViewModel.StartAt) <br/>
+                            @(Model.ProfileViewModel.EducationViewModel.GraduateAt == "" ? " Not Graduate Yet" : "Graduated at " + Model.ProfileViewModel.EducationViewModel.GraduateAt)
+
+                        }
+                    </p>
+                    <hr>
+                    <strong><i class="fa fa-briefcase margin-r-5"></i> Work</strong>
+                    <p class="text-muted">
+                        @if (Model.ProfileViewModel.WorkViewModel.CountryId != 0)
+                        {
+                            @(Model.ProfileViewModel.WorkViewModel.JobTitle == null ? "" : Model.ProfileViewModel.WorkViewModel.JobTitle)
+                            @(Model.ProfileViewModel.WorkViewModel.CompanyName == null ? "" : "at " + Model.ProfileViewModel.WorkViewModel.CompanyName)
+                            @(Model.ProfileViewModel.WorkViewModel.CountryId == 1 ? "" : "," + Model.ProfileViewModel.Countries.FindLast(x => x.Id == Model.ProfileViewModel.WorkViewModel.CountryId).Name + ".")<br/>
+                            @(Model.ProfileViewModel.WorkViewModel.Since == "" ? " " : "Since " + Model.ProfileViewModel.WorkViewModel.Since)
+                        }
+
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!--Add a post as Contributor-->
+        <div class="col-md-9">
+            @if (Model.AddPostAsContributor != null)
+            {
+                <div class="box box-primary collapsed-box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Add a post as Contributor</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div class="col-md-12">
+                            <!-- From Begin -->
+                            <form class="form-horizontal" method="post">
+                                @Html.HiddenFor(x => x.AddPostAsContributor.OwnerId, new { id = "OwnerId" })
+                                @Html.HiddenFor(x => x.AddPostAsContributor.ContributorPrivacySettings.Id, new { id = "ContributorId" })
+                                <!-- Post Content -->
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <textarea asp-for="AddPostAsContributor.Content" class="form-control" id="Content" style="height:60px" placeholder="Add your post here "></textarea>
+                                    </div>
+                                </div>
+                                <!-- Tag People -->
+                                <div class="form-group">
+                                    <label for="TagPeople" class="col-sm-2 control-label">Tag People</label>
+                                    <div class="col-sm-10">
+                                        <select asp-for="AddPostAsContributor.TaggedUsers" class="form-control select2_u" multiple="multiple" data-placeholder="Select User" id="TaggedUsers" style="width: 100%;">
+                                            @if (Model.AddPostAsContributor.TaggedUsers != null)
+                                            {
+                                                foreach (var item in Model.AddPostAsContributor.TaggedUsers)
+                                                {
+                                                    <option value="@item.Value">@item.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Privacy Setings -->
+                                <p>Choose to Apply Your Default Privacy Settings or Customize it</p>
+                                <div class="box-body">
+                                    <div class="form-group">
+                                        <label for="Relationships" class="col-sm-2 control-label">Relationships</label>
+                                        <div class="col-sm-4">
+                                            <select asp-for="AddPostAsContributor.ContributorPrivacySettings.Relationships" id="Contributor-Relationship" class="form-control select2 Relationship" multiple="multiple" data-placeholder="Select Relationship" style="width: 100%;">
+                                                @if (Model.AddPostAsContributor.ContributorPrivacySettings.Relationships != null)
+                                                {
+                                                    foreach (var item in Model.AddPostAsContributor.ContributorPrivacySettings.Relationships)
+                                                    {
+                                                        if (item.Selected)
+                                                        {
+                                                            <option value="@item.Value" selected>@item.Text</option>}
+                                                        else
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>}
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <label for="exceptRelationship" class="col-sm-1 control-label">Except</label>
+                                        <div class="col-sm-4">
+                                            <select asp-for="AddPostAsContributor.ContributorPrivacySettings.ExceptRelationshipsContacts" id="Contributor-Relationship-Except" class="form-control select2_u" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                                @if (Model.AddPostAsContributor.ContributorPrivacySettings.ExceptRelationshipsContacts != null)
+                                                {
+                                                    foreach (var item in Model.AddPostAsContributor.ContributorPrivacySettings.ExceptRelationshipsContacts)
+                                                    {
+                                                        if (item.Selected)
+                                                        {
+                                                            <option value="@item.Value" selected>@item.Text</option>}
+                                                        else
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>}
+                                                    }
+                                                }
+
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Groups" class="col-sm-2 control-label">Groups</label>
+                                        <div class="col-sm-4">
+                                            <select asp-for="AddPostAsContributor.ContributorPrivacySettings.Groups" id="Contributor-Groups" class="form-control select2_g" multiple="multiple" data-placeholder="Select Group" style="width: 100%;">
+                                                @if (Model.AddPostAsContributor.ContributorPrivacySettings.Groups != null)
+                                                {
+                                                    foreach (var item in Model.AddPostAsContributor.ContributorPrivacySettings.Groups)
+                                                    {
+                                                        if (item.Selected)
+                                                        {
+                                                            <option value="@item.Value" selected>@item.Text</option>}
+                                                        else
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>}
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <label for="exceptGroup" class="flag-container col-sm-1 control-label">Except</label>
+                                        <div class="col-sm-4">
+                                            <select asp-for="AddPostAsContributor.ContributorPrivacySettings.ExceptGroupsMembers" id="Contributor-Groups-Except" class="form-control select2_u" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                                @if (Model.AddPostAsContributor.ContributorPrivacySettings.ExceptGroupsMembers != null)
+                                                {
+                                                    foreach (var item in Model.AddPostAsContributor.ContributorPrivacySettings.ExceptGroupsMembers)
+                                                    {
+                                                        if (item.Selected)
+                                                        {
+                                                            <option value="@item.Value" selected>@item.Text</option>}
+                                                        else
+                                                        {
+                                                            <option value="@item.Value">@item.Text</option>}
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Individual" class=" col-sm-2 control-label">Individual Users</label>
+                                        <div class="col-sm-9">
+                                            <select asp-for="AddPostAsContributor.ContributorPrivacySettings.Individuals" id="Contributor-Individual" class="form-control Individual" multiple="multiple" data-placeholder="Select User" style="width: 100%;">
+                                                @if (Model.AddPostAsContributor.ContributorPrivacySettings.Individuals != null)
+                                                {
+                                                    foreach (var item in Model.AddPostAsContributor.ContributorPrivacySettings.Individuals)
+                                                    {
+                                                        if (item.Selected)
+                                                        {
+                                                            <option value="@item.Value" selected>@item.Text</option>
+                                                        }
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--publish Button -->
+                                <div class="col-md-2">
+                                    <a href="#" class="btn btn-danger btn-block margin-bottom" id="AddPost">Publish</a>
+                                </div>
+                            </form>
+                            <!-- /.form -->
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+            <!--Posts-->
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Posts</h3>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    @if (Model.AllowedPosts != null)
+                    {
+                        foreach (var item in Model.AllowedPosts)
+                        {
+                            var postId = item.PostId;
+                            var like_id = "like-" + postId;
+                            var share_id = "share-" + postId;
+                            <div class="post">
+                                <div class="user-block">
+                                    <img class="img-circle img-bordered-sm" src="@item.DisplayImageURL" alt="user image">
+                                    <span class="username">
+                                        @Html.Raw(item.PostDescription)
+                                        
+                                    </span>
+                                    <span class="description">@item.PostDateTime</span>
+                                </div>
+                                <!-- /.user-block -->
+                                <p>
+                                    @Html.Raw(item.PostContent)
+                                </p>
+                                <ul class="list-inline">
+                                    <!--like-->
+                                    @if (!item.LikesCount.Contains(ViewData["currentUserId"]))
+                                    {
+                                        <li><a id="@like_id" href="#" class="link-black text-sm " onclick="return SetLike(@postId, event);"><i class="fa fa-thumbs-o-up margin-r-5"></i>Like</a></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a disabled class="link-muted text-sm text-orange "><i class="fa fa-thumbs-o-up margin-r-5"></i> Liked</a></li>
+                                    }
+                                    <!--share-->
+                                    @if (Model.AllowShare && item.Controllers.Find(x => x.ControllerId == ViewData["currentUserId"].ToString() && x.Type != (int)U2PRelationshipTypeEnum.ShareHolder) == null)
+                                    {
+                                        if (!item.SharesCount.Contains(ViewData["currentUserId"]))
+                                        {
+                                            <li><a id="@share_id" href="#" class="link-black text-sm " onclick="return SharePost(@postId, event);"><i class="fa fa-thumbs-o-up margin-r-5"></i>Share</a></li>
+                                        }
+                                        else
+                                        {
+                                            <li><a disabled class="link-muted text-sm text-orange "><i class="fa fa-share margin-r-5"></i> Shared</a></li>
+                                        }
+                                    }
+
+                                </ul>
+
+                            </div>
+                            <!-- /.post -->
+                        }
+                    }
+
+
+                </div>
+                <!-- /.box-body -->
+
+            </div>
+            <!--/.box -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+
+
+</section>
+<!-- /.content -->

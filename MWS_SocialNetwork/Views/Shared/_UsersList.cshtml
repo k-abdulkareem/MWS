@@ -1,0 +1,27 @@
+﻿@model IEnumerable<MWS_SocialNetwork.ViewModels.ContactModel>
+
+
+@if (Model != null)
+{
+    if (Model.Count() > 0)
+    {
+        <ul class="users-list clearfix">
+          @foreach (var item in Model)
+           {
+            <li>
+                <img class="big-circle" src="@item.ImageUrl" alt="User Image">
+                <a class="users-list-name" asp-action="Index" asp-controller="UserProfile" asp-route-cId="@item.Id">@item.FullName</a>
+                <span class="users-list-date">@item.RelationshipTitle</span>
+            </li>
+           }
+         </ul>
+    }
+    else
+    {
+        <p>&nbsp;&nbsp;No results</p>
+    }
+}
+else
+{
+    <p>&nbsp;&nbsp;No results</p>
+}

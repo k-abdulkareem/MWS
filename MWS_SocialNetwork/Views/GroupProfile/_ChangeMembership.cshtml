@@ -1,0 +1,17 @@
+﻿@model bool
+
+<form method="Post" id="ChangeGroupMembership">
+    <select class="btn btn-primary btn-block form-control" id="Membership" style="width: 100%;">
+        @if (Model)
+        {
+            <option value="1" selected="selected">Joined</option>
+            <option value="0">Disjoined</option>
+        }
+        else
+        {
+            <option value="1">Joined</option>
+            <option value="0" selected="selected">Disjoined</option>
+        }
+
+    </select>
+</form>

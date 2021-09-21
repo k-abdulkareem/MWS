@@ -1,0 +1,537 @@
+﻿@model MWS_SocialNetwork.ViewModels.MyPostsModel
+
+@section Styles {
+    <!-- Select2 -->
+    <link rel="stylesheet" href="~/bower_components/select2/dist/css/select2.min.css">
+    <!-- Bootstrap 3.3.7 -->
+    <link rel="stylesheet" href="~/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="~/bower_components/font-awesome/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="~/bower_components/Ionicons/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/dist/css/AdminLTE.min.css">
+    <!-- AdminLTE Skins. Choose a skin from the css/skins
+         folder instead of downloading all of them to reduce the load. -->
+    <link rel="stylesheet" href="~/dist/css/skins/_all-skins.min.css">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- Google Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+    <style>
+
+        .example-modal .modal {
+            position: relative;
+            top: auto;
+            bottom: auto;
+            right: auto;
+            left: auto;
+            display: block;
+            z-index: 1;
+        }
+
+        .example-modal .modal {
+            background: transparent !important;
+        }
+    </style>
+}
+@section Scripts {
+
+    <!-- Select2 -->
+    <script src="~/bower_components/select2/dist/js/select2.full.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <!--show modal settings-->
+    <script>
+        function ShowModalSettings(event, postId,from) {
+            event.preventDefault();
+            switch (from) {
+                case 'all':
+                    { var divname = "#modal-settings-all-" + postId; break; }
+                case 'owned':
+                    { var divname = "#modal-settings-owned-" + postId; break; }
+                case 'contributed':
+                    { var divname = "#modal-settings-contributed-" + postId; break; }
+                case 'tagged':
+                    { var divname = "#modal-settings-tagged-" + postId; break; }
+                case 'shared':
+                    { var divname = "#modal-settings-shared-" + postId; break; }
+            }
+            $(divname).empty();
+            $.ajax({
+                url: '@Url.Action("ShowPrivacySettings", "MyPosts")',
+                data: { postId : postId },
+                dataType: "html",
+                traditional: true,
+                success: function (data) {
+                    $(divname).html(data);
+                    function format_u(state) {
+                if (!state.id) return state.text; // optgroup
+             return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Profiles-Images/"+state.id+".jpg' /></span>" +" "+state.text;
+        }
+
+        function format_i(state) {
+            return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Profiles-Images/" + state.id + ".jpg' /></span>" + " " + state.text;
+        }
+
+        function format_g(state) {
+            return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Groups-Images/" + state.id + ".jpg' /></span>" + " " + state.text;
+        }
+
+        $(function () {
+            $('.select2').select2()
+        })
+
+        $(function () {
+            $('.select2_g').select2({
+                templateResult: format_g,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+
+        $(function () {
+            $('.select2_u').select2({
+                templateResult: format_u,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+
+                    $(function () {
+                        $('.Individual').select2({
+                            placeholder: "Search for a user",
+                            minimumInputLength: 2,
+                            ajax: {
+                                url: '@Url.Action("GetIndividuals","PrivacySettings")',
+                                dataType: 'json',
+                                type: "GET",
+                                quietMillis: 100,
+                                data: function (params) { return { term: params.term }; },
+                                processResults: function (data, page) {
+                                    var results = [];
+                                    $.each(data, function (index, item) {
+                                        results.push({
+                                            id: item.value,
+                                            text: item.text
+                                        });
+                                    });
+                                    return {
+                                        results: results
+                                    };
+                                }
+                            },
+                            templateResult: format_i,
+                            escapeMarkup: function (markup) { return markup; }
+                        });
+                    });
+                    $('#Relationship').on('change', function (e) {
+                        var selectedRelationships = [];
+                        $.each($("#Relationship option:selected"), function () {
+                            selectedRelationships.push($(this).val());
+                        });
+                        var except = $("#Relationship-Except");
+                        except.empty();
+                        var dataobj = { relationships: selectedRelationships };
+                        $.ajax({
+                            url: '@Url.Action("GetRelationshipsContacts", "PrivacySettings")',
+                            data: dataobj,
+                            dataType: "JSON",
+                            traditional: true,
+                            success: function (excepts) {
+                                $.each(excepts, function (index, entry) {
+                                    var newOption = new Option(entry.text, entry.value, false, false);
+                                    except.append(newOption);
+                                });
+                            }
+                        });
+                    });
+                    $('#Groups').on('change', function (e) {
+                        var selectedGroups = [];
+                        $.each($("#Groups option:selected"), function () {
+                            selectedGroups.push($(this).val());
+                        });
+                        var except = $("#Groups-Except");
+                        except.empty();
+                        var dataobj = { groups: selectedGroups };
+                        $.ajax({
+                            url: '@Url.Action("GetGroupsMembers", "PrivacySettings")',
+                            data: dataobj,
+                            dataType: "JSON",
+                            traditional: true,
+                            success: function (excepts) {
+                                $.each(excepts, function (index, entry) {
+                                    var newOption = new Option(entry.text, entry.value, false, false);
+                                    except.append(newOption);
+                                });
+                            }
+                        });
+                    });
+                    $('#SavePrivacySettings').on('click', function (e) {
+                        e.preventDefault();
+                        var PrivacySettings = {
+                            Id: $("#u2pId").val(),
+                            Relationships: $('#Relationship').serializeArray(),
+                            ExceptRelationshipsContacts: $('#Relationship-Except').serializeArray(),
+                            Groups: $('#Groups').serializeArray(),
+                            ExceptGroupsMembers: $('#Groups-Except').serializeArray(),
+                            Individuals: $('#Individual').serializeArray()
+                        };
+                        var dataobj = { model: PrivacySettings };
+                        $.ajax({
+                            url: '@Url.Action("ChangePrivacySettings")',
+                            data: dataobj,
+                            type: 'Post',
+                            success: function (responce) {
+                                toastr.options.positionClass = 'toast-bottom-right';
+                                console.log("success");
+                                toastr.success("Successfully Changing Privacy Settings");
+                            },
+                            error: function (jqXHR, status, err) {
+                                toastr.options.positionClass = 'toast-bottom-right';
+                                console.log(jqXHR.responseText);
+                                toastr.error('Failed ');
+                            }
+                        });
+                    });
+
+                    $('#CloseModalSettings').on('click', function (e) {
+                        e.preventDefault();
+                        $(divname).modal('hide');
+                        $(divname).empty();
+                    });
+
+                    $(divname).modal('show');
+
+                },
+                 error: function (jqXHR, status, err) {
+                    console.log(jqXHR.responseText);
+                }
+            });
+        }
+
+    </script>
+
+<!--Show Modal Visibility-->
+    <script>
+        function ShowModalVisibility(event,postId,from) {
+            event.preventDefault();
+            switch (from) {
+                case 'all':
+                    { var divname = "#modal-visibility-all-" + postId; break; }
+                case 'owned':
+                    { var divname = "#modal-visibility-owned-" + postId; break; }
+                case 'contributed':
+                    { var divname = "#modal-visibility-contributed-" + postId; break; }
+                case 'tagged':
+                    { var divname = "#modal-visibility-tagged-" + postId; break; }
+                case 'shared':
+                    { var divname = "#modal-visibility-shared-" + postId; break; }
+            }
+            $(divname).empty();
+            $.ajax({
+                url: '@Url.Action("ShowVisibility", "MyPosts")',
+                data: { postId: postId },
+                dataType: "html",
+                traditional: true,
+                success: function (data) {
+                    $(divname).html(data);
+
+                    function format_i(state) {
+                        return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Profiles-Images/" + state.id + ".jpg' /></span>" + " " + state.text;
+                    }
+
+                    $(function () {
+                        $('.Individual').select2({
+                            placeholder: "Search for a user",
+                            minimumInputLength: 2,
+                            ajax: {
+                                url: '@Url.Action("GetIndividuals","PrivacySettings")',
+                                dataType: 'json',
+                                type: "GET",
+                                quietMillis: 100,
+                                data: function (params) { return { term: params.term }; },
+                                processResults: function (data, page) {
+                                    $('#allowed').empty();
+                                     $('#disallowed').empty();
+                                    var results = [];
+                                    $.each(data, function (index, item) {
+                                        results.push({
+                                            id: item.value,
+                                            text: item.text
+                                        });
+                                    });
+                                    return {
+                                        results: results
+                                    };
+                                }
+                            },
+                            templateResult: format_i,
+                            escapeMarkup: function (markup) { return markup; }
+                        });
+                    });
+
+                    $('#CheckVisibility').on('click', function (e) {
+                        e.preventDefault();
+                        $('#VisibilityResult').empty();
+                        var userId = $('#Individual').val();
+                        var dataobj = { userId: userId, postId: postId };
+                        $.ajax({
+                            url: '@Url.Action("CheckVisibility")',
+                            data: dataobj,
+                            type: 'Post',
+                            success: function (data) {
+                                $('#VisibilityResult').html(data);
+                            },
+                            error: function (jqXHR, status, err) {
+                                console.log(jqXHR.responseText);
+                            }
+                        });
+                    });
+
+                    $('#CloseModalVisibility').on('click', function (e) {
+                        e.preventDefault();
+                        $(divname).modal('hide');
+                        $(divname).empty();
+                    });
+
+                    $(divname).modal('show');
+                }
+            });
+        }
+    </script>
+}
+
+<section class="content-header">
+    <h1>
+        My Posts
+    </h1>
+</section>
+<!-- Main content -->
+<section class="content">
+    <div class="row">
+
+        <!-- /.col -->
+        <div class="col-md-12">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+                    <li class=" @(ViewData["active"].ToString() == "AllPosts" ? " active" : "")"><a href="#AllPosts" data-toggle="tab">All Posts</a></li>
+                    <li class=" @(ViewData["active"].ToString() == "Owned" ? " active" : "")"><a href="#Owned" data-toggle="tab">Owned</a></li>
+                    <li class=" @(ViewData["active"].ToString() == "Contributed" ? " active" : "")"><a href="#Contributed" data-toggle="tab">Contributed</a></li>
+                    <li class=" @(ViewData["active"].ToString() == "Tagged" ? " active" : "")"><a href="#Tagged" data-toggle="tab">Tagged</a></li>
+                    <li class=" @(ViewData["active"].ToString() == "Shared" ? " active" : "")"><a href="#Shared" data-toggle="tab">Shared</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class=" @(ViewData["active"].ToString() == "AllPosts" ? " active tab-pane" : "tab-pane") " id="AllPosts">
+                    
+                        @if (Model.AllPosts != null)
+                        {
+                            foreach (var item in Model.AllPosts)
+                            {
+                                <div class="post">
+                                    <div class="user-block">
+                                        <img class="img-circle img-bordered-sm" src="@item.DisplayImageURL" alt="user image">
+                                        <span class="username">
+                                            @Html.Raw(item.PostDescription)
+                                            @{var modal_settings_id_all = "modal-settings-all-" + item.PostId;
+                                                var modal_visibility_id_all = "modal-visibility-all-" + item.PostId;
+                                                // var from = 0
+                                            }
+                                            <!--Modal settings-->
+                                            <a href="#" class="pull-right btn-box-tool text-muted show-modal-settings" onclick="ShowModalSettings(event,@item.PostId,'all');">
+                                                <i class="fa fa-cog" data-toggle="tooltip" title="Change Privacy settings"></i>
+                                            </a>
+                                        </span>
+                                        <span class="description">@item.PostDateTime</span>
+                                    </div>
+                                    <p>
+                                        @Html.Raw(item.PostContent)
+                                    </p>
+                                    <ul class="list-inline">
+                                        <li><label class="text-sm"><i class="fa fa-thumbs-o-up margin-r-5"></i> Liked (@item.LikesCount.Count)</label></li>
+                                        <li><label class=" text-sm"><i class="fa fa-share margin-r-5"></i> Shared (@item.SharesCount.Count)</label></li>
+                                        <li class="pull-right">
+                                            <a href="#" class="link-black text-sm " onclick="ShowModalVisibility(event,@item.PostId,'all');">
+                                                <i class="fa fa-users margin-r-5 "></i>Check Visibility
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="modal fade" id=@modal_settings_id_all></div>
+                                <div class="modal fade" id=@modal_visibility_id_all></div>
+                            }
+                        }
+                    </div>
+                    <!-- Owned -->
+                    <div class=" @(ViewData["active"].ToString() == "Owned" ? " active tab-pane" : "tab-pane") " id="Owned">
+                        @if (Model.AsOwner != null)
+                        {
+                            foreach (var item in Model.AsOwner)
+                            {
+                                <div class="post">
+                                    <div class="user-block">
+                                        <img class="img-circle img-bordered-sm" src="@item.DisplayImageURL" alt="user image">
+                                        <span class="username">
+                                            @Html.Raw(item.PostDescription)
+                                            @{var modal_settings_id_owned = "modal-settings-owned-" + item.PostId;
+                                                var modal_visibility_id_owned = "modal-visibility-owned-" + item.PostId;
+                                                // var from = 0
+                                            }
+                                            <!--Modal settings-->
+                                            <a href="#" class="pull-right btn-box-tool text-muted show-modal-settings" onclick="ShowModalSettings(event,@item.PostId,'owned');">
+                                                <i class="fa fa-cog" data-toggle="tooltip" title="Change Privacy settings"></i>
+                                            </a>
+                                        </span>
+                                        <span class="description">@item.PostDateTime</span>
+                                    </div>
+                                    <p>
+                                        @Html.Raw(item.PostContent)
+                                    </p>
+                                    <ul class="list-inline">
+                                        <li><label class="text-sm"><i class="fa fa-thumbs-o-up margin-r-5"></i> Liked (@item.LikesCount.Count)</label></li>
+                                        <li><label class=" text-sm"><i class="fa fa-share margin-r-5"></i> Shared (@item.SharesCount.Count)</label></li>
+                                        <li class="pull-right">
+                                            <a href="#" class="link-black text-sm " onclick="ShowModalVisibility(event,@item.PostId,'owned');">
+                                                <i class="fa fa-users margin-r-5 "></i>Check Visibility
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="modal fade" id=@modal_settings_id_owned></div>
+                                <div class="modal fade" id=@modal_visibility_id_owned></div>
+                            }
+                        }
+                    </div>
+                    <!--Contributed -->
+                    <div class=" @(ViewData["active"].ToString() == "Contributed" ? " active tab-pane" : "tab-pane") " id="Contributed">
+                        @if (Model.AsContributor != null)
+                        {
+                            foreach (var item in Model.AsContributor)
+                            {
+                                <div class="post">
+                                    <div class="user-block">
+                                        <img class="img-circle img-bordered-sm" src="@item.DisplayImageURL" alt="user image">
+                                        <span class="username">
+                                            @Html.Raw(item.PostDescription)
+                                            @{var modal_settings_id_contributed = "modal-settings-contributed-" + item.PostId;
+                                                var modal_visibility_id_contributed = "modal-visibility-contributed-" + item.PostId;
+                                            }
+                                            <!--Modal settings-->
+                                            <a href="#" class="pull-right btn-box-tool text-muted show-modal-settings" onclick="ShowModalSettings(event,@item.PostId,'contributed');">
+                                                <i class="fa fa-cog" data-toggle="tooltip" title="Change Privacy settings"></i>
+                                            </a>
+                                        </span>
+                                        <span class="description">@item.PostDateTime</span>
+                                    </div>
+                                    <p>
+                                        @Html.Raw(item.PostContent)
+                                    </p>
+                                    <ul class="list-inline">
+                                        <li><label class="text-sm"><i class="fa fa-thumbs-o-up margin-r-5"></i> Liked (@item.LikesCount.Count)</label></li>
+                                        <li><label class=" text-sm"><i class="fa fa-share margin-r-5"></i> Shared (@item.SharesCount.Count)</label></li>
+                                        <li class="pull-right">
+                                            <a href="#" class="link-black text-sm " onclick="ShowModalVisibility(event,@item.PostId,'contributed');">
+                                                <i class="fa fa-users margin-r-5 "></i>Check Visibility
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="modal fade" id=@modal_settings_id_contributed></div>
+                                <div class="modal fade" id=@modal_visibility_id_contributed></div>
+                            }
+                        }
+                    </div>
+                    <!-- Tagged -->
+                    <div class=" @(ViewData["active"].ToString() == "Tagged" ? " active tab-pane" : "tab-pane") " id="Tagged">
+                        @if (Model.AsTagged != null)
+                        {
+                            foreach (var item in Model.AsTagged)
+                            {
+                                <div class="post">
+                                    <div class="user-block">
+                                        <img class="img-circle img-bordered-sm" src="@item.DisplayImageURL" alt="user image">
+                                        <span class="username">
+                                            @Html.Raw(item.PostDescription)
+                                            @{var modal_settings_id_tagged = "modal-settings-tagged-" + item.PostId;
+                                                var modal_visibility_id_tagged = "modal-visibility-tagged-" + item.PostId;
+                                            }
+                                            <!--Modal settings-->
+                                            <a href="#" class="pull-right btn-box-tool text-muted show-modal-settings" onclick="ShowModalSettings(event,@item.PostId,'tagged');">
+                                                <i class="fa fa-cog" data-toggle="tooltip" title="Change Privacy settings"></i>
+                                            </a>
+                                        </span>
+                                        <span class="description">@item.PostDateTime</span>
+                                    </div>
+                                    <p>
+                                        @Html.Raw(item.PostContent)
+                                    </p>
+                                    <ul class="list-inline">
+                                        <li><label class="text-sm"><i class="fa fa-thumbs-o-up margin-r-5"></i> Liked (@item.LikesCount.Count)</label></li>
+                                        <li><label class=" text-sm"><i class="fa fa-share margin-r-5"></i> Shared (@item.SharesCount.Count)</label></li>
+                                        <li class="pull-right">
+                                            <a href="#" class="link-black text-sm " onclick="ShowModalVisibility(event,@item.PostId,'tagged');">
+                                                <i class="fa fa-users margin-r-5 "></i>Check Visibility
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="modal fade" id=@modal_settings_id_tagged></div>
+                                <div class="modal fade" id=@modal_visibility_id_tagged></div>
+                            }
+                        }
+                    </div>
+                    <!-- Shared -->
+                    <div class=" @(ViewData["active"].ToString() == "Shared" ? " active tab-pane" : "tab-pane") " id="Shared">
+                        @if (Model.AsShareHolder != null)
+                        {
+                            foreach (var item in Model.AsShareHolder)
+                            {
+                                <div class="post">
+                                    <div class="user-block">
+                                        <img class="img-circle img-bordered-sm" src="@item.DisplayImageURL" alt="user image">
+                                        <span class="username">
+                                            @Html.Raw(item.PostDescription)
+                                            @{var modal_settings_id_shared = "modal-settings-shared-" + item.PostId;
+                                                var modal_visibility_id_shared = "modal-visibility-shared-" + item.PostId;
+                                            }
+                                            <!--Modal settings-->
+                                            <a href="#" class="pull-right btn-box-tool text-muted show-modal-settings" onclick="ShowModalSettings(event,@item.PostId,'shared');">
+                                                <i class="fa fa-cog" data-toggle="tooltip" title="Change Privacy settings"></i>
+                                            </a>
+                                        </span>
+                                        <span class="description">@item.PostDateTime</span>
+                                    </div>
+                                    <p>
+                                        @Html.Raw(item.PostContent)
+                                    </p>
+                                    <ul class="list-inline">
+                                        <li><label class="text-sm"><i class="fa fa-thumbs-o-up margin-r-5"></i> Liked (@item.LikesCount.Count)</label></li>
+                                        <li><label class=" text-sm"><i class="fa fa-share margin-r-5"></i> Shared (@item.SharesCount.Count)</label></li>
+                                        <li class="pull-right">
+                                            <a href="#" class="link-black text-sm " onclick="ShowModalVisibility(event,@item.PostId,'shared');">
+                                                <i class="fa fa-users margin-r-5 "></i>Check Visibility
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="modal fade" id=@modal_settings_id_shared></div>
+                                <div class="modal fade" id=@modal_visibility_id_shared></div>
+                            }
+                        }
+                    </div>
+                    <!-- /.tab-pane -->
+                </div>
+                <!-- /.tab-content -->
+            </div>
+            <!-- /.nav-tabs-custom -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+
+</section>
+

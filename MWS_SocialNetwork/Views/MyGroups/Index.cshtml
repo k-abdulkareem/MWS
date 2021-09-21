@@ -1,0 +1,175 @@
+﻿@model MWS_SocialNetwork.ViewModels.MyGroupViewModel
+
+@section Styles {
+   
+    <!-- Select2 -->
+    <link rel="stylesheet" href="~/bower_components/select2/dist/css/select2.min.css">
+    <!-- Bootstrap 3.3.7 -->
+    <link rel="stylesheet" href="~/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="~/bower_components/font-awesome/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="~/bower_components/Ionicons/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/dist/css/AdminLTE.min.css">
+    <!-- AdminLTE Skins. Choose a skin from the css/skins
+         folder instead of downloading all of them to reduce the load. -->
+    <link rel="stylesheet" href="~/dist/css/skins/_all-skins.min.css">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- Google Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+
+}
+@section Scripts {
+    <!-- Select2 -->
+    <script src="~/bower_components/select2/dist/js/select2.full.min.js"></script>
+    <script >
+        function findGroups(e) {
+            $('div#SearchResultContainer').empty();
+            e.preventDefault();
+            var search = $("#searchString").val();
+
+            var dataobj = { searchString: search };
+
+            $.ajax({
+                url: 'FindGroups',
+                dataType: "html",
+                data: dataobj,
+                success: function (response) {
+                    console.log("success");
+                    $('div#SearchResultContainer').html(response);
+                },
+                error: function (jqXHR, status, err) {
+                    console.log(jqXHR.responseText);
+                    $('div#SearchResultContainer').empty();
+                }
+            });
+        };
+
+    </script>
+  
+    <!-- Page script -->
+    <script>
+        function format_u(state) {
+         // debugger;
+                if (!state.id) return state.text; // optgroup
+             return "<span><img  class='img-circle' style='height: 30px; width: 30px;' src='/Profiles-Images/"+state.id+".jpg' /></span>" +" "+state.text;
+        }
+        $(function () {
+            //Initialize Select2 Elements
+            $('.select2').select2({
+                templateResult: format_u,
+                escapeMarkup: function (markup) { return markup; }
+            });
+        })
+    </script>
+}
+
+<!-- Content Wrapper. Contains page content -->
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        My Groups
+    </h1>
+</section>
+<!-- Main content -->
+<section class="content">
+    <div class="row">
+
+        <!-- /.col -->
+        <div class="col-md-12">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+                    <li class="@(ViewData["ActiveTab"].ToString()  == "AllGroups"? "active" : "")"><a href="#AllGroups" data-toggle="tab">Groups (@Model.MyGroupsCount)</a></li>
+                    <li class="@(ViewData["ActiveTab"].ToString() == "CreateGroup"? "active" : "")"><a href="#CreateGroup" data-toggle="tab">Create a group</a></li>
+                    <li><a href="#Search" data-toggle="tab">Find a group <i class="fa fa-search"></i></a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="@(ViewData["ActiveTab"].ToString()  == "AllGroups"? "active tab-pane" : "tab-pane")"  id="AllGroups">
+                        <div class="box-body no-padding">
+                            <ul class="users-list clearfix">
+                                @if (Model.MyGroups != null)
+                                {
+                                    foreach (var item in Model.MyGroups)
+                                    {
+                                        <li>
+                                            <img class="big-circle" src=@item.ImageUrl alt="Group Image">
+                                            <a class="users-list-name" asp-action="Index" asp-controller="GroupProfile" asp-route-gId="@item.Id">@item.Name</a>
+                                            <span class="users-list-date">
+                                               member
+                                            </span>
+                                        </li>
+                                    }
+                                }
+
+
+                            </ul>
+                            <!-- /.users-list -->
+                        </div>
+                        <!-- /.box-body -->
+
+                    </div>
+                    <!-- /.tab-pane -->
+                    <div class="@(ViewData["ActiveTab"].ToString()  == "CreateGroup"? "active tab-pane" : "tab-pane")" id="CreateGroup">
+                        <div class="box-body no-padding" id="CreateResultContainer">
+                            @await  Html.PartialAsync("_AddGroupView",Model.CreateGroup)
+                           
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                    <!-- /.tab-pane -->
+                    @await  Component.InvokeAsync("NToastNotify") 
+                    <div class="tab-pane" id="Search">
+                        <br />
+                        <div class="row">
+                            <div class="col-md-3">
+                                    <div class="box-body">
+                                        <div class="form-group">
+                                            <div class="input-group margin ">
+                                                <p>Type Group name</p>
+                                            </div>
+                                            <div class="input-group margin ">
+                                                <input type="text" class="form-control center-block" id="searchString" name="searchString" onchange="findGroups(event);">
+                                                <span class="input-group-btn">
+                                                    <button type="button" id="GroupSearch" name="GroupSearch" class="btn btn-info btn-flat" onclick="findGroups(event);">Search</button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-md-9">
+                                <div class="box box-default">
+                                    <div class="box-header with-border">
+                                        <h3 class="box-title">Search Results</h3>
+                                    </div>
+                                    <!-- /.box-header -->
+                                    <div class="box-body no-padding" id="SearchResultContainer">
+
+                                    </div>
+                                    <!-- /.box-body -->
+
+                                </div>
+                                <!--/.box -->
+                            </div>
+                            <!--/.col -->
+                        </div>
+                        <!--/.row -->
+                    </div>
+                    <!-- /.tab-pane -->
+                </div>
+                <!-- /.tab-content -->
+            </div>
+            <!-- /.nav-tabs-custom -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</section>
